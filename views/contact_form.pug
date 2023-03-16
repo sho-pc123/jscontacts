@@ -1,9 +1,7 @@
-
 extends layout
 
 block content
   h1=title
-
 
   - if(err)
     - const errors = err.errors
@@ -13,6 +11,7 @@ block content
 
   form(action='/contacts', method='post')
     input(type='hidden', name='id', value=contact.id)
+
     div.field
       label(for='name') 名前
       input#name(type='text', name='name', value=contact.name)
@@ -21,7 +20,7 @@ block content
       label(for='email') Email
       input#email(type='text', name='email', value=contact.email)
 
-    div.field   
+    div.field
       label(for='category') カテゴリ
       select#category(type='text', name='categoryId')
         option(value="", selected=contact.categoryId === null) なし

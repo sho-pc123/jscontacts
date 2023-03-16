@@ -42,6 +42,7 @@ router.post('/contacts', async function (req, res, next) {
       req.session.flashMessage = `「${contact.name}」さんを更新しました`; //--- [4]
     } else {
       const contact = models.Contact.build(req.body);
+      ///ここでエラー
       await contact.save({ fields });
       req.session.flashMessage = `新しい連絡先として「${contact.name}」さんを保存しました`; //--- [1]
     }
@@ -49,7 +50,8 @@ router.post('/contacts', async function (req, res, next) {
   } catch (err) {
     if (err instanceof ValidationError) {
       const title = (req.body.id) ? '連絡先の更新' : '連絡先の作成'; //--- [5〜]
-      res.render(`contact_form`, { title, contact: req.body, err: err }); //--- [〜5]
+      const categories = await models.Category.findAll();
+      res.render(`contact_form`, { title, categories, contact: req.body, err: err }); //--- [〜5]
     } else {
       throw err; // ここでの対応を諦めて処理系に任せる
     }
