@@ -39,10 +39,17 @@ router.post('/contacts', async function (req, res, next) {
     if (req.body.id) {
       const contact = await models.Contact.findByPk(req.body.id); //---[1]
       contact.set(req.body);
+      if (contact['categoryId'] === '') {
+        contact['categoryId'] = null;
+      }
       await contact.save({ fields });
       req.session.flashMessage = `「${contact.name}」さんを更新しました`; //--- [4]
     } else {
       const contact = models.Contact.build(req.body);
+      if(contact['categoryId'] === ''){
+        contact['categoryId'] = null;
+      }
+      console.log(contact);
       ///ここでエラー
       await contact.save({ fields });
       req.session.flashMessage = `新しい連絡先として「${contact.name}」さんを保存しました`; //--- [1]
@@ -54,6 +61,7 @@ router.post('/contacts', async function (req, res, next) {
       const categories = await models.Category.findAll();
       res.render(`contact_form`, { title, categories, contact: req.body, err: err }); //--- [〜5]
     } else {
+      // console.log(err);
       throw err; // ここでの対応を諦めて処理系に任せる
     }
   }
