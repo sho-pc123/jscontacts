@@ -4,20 +4,21 @@ const models = require('../models');
 const { ValidationError } = require('sequelize');
 
 /* GET home page. */
-router.get('/', async function(req, res, next) {
+router.get('/', async function (req, res, next) {
   req.session.view_counter = (req.session.view_counter || 0) + 1; //--- [1]
   const flashMessage = req.session.flashMessage; //--- [2]
   delete req.session.flashMessage; //--- [3]
 
   const now = new Date();
-  const contacts = await models.Contact.findAll({include:'category'});
+  const contacts = await models.Contact.findAll({ include: 'category' });
   const categories = await models.Category.findAll(); //--- [2]
   res.render('index', {
-    title: '連絡帳', now, contacts, categories, view_counter: req.session.view_counter, flashMessage }); //--- [4]
+    title: '連絡帳', now, contacts, categories, view_counter: req.session.view_counter, flashMessage
+  }); //--- [4]
 });
 
-router.get('/about', function(req, res, next) {
-  res.render('about', {title: 'About'});
+router.get('/about', function (req, res, next) {
+  res.render('about', { title: 'About' });
 });
 
 router.get('/contact_form', async function (req, res, next) {
@@ -66,7 +67,7 @@ router.post('/contacts/:id/delete', async function (req, res, next) { //--- [1]
   res.redirect('/');
 });
 
-//カテゴリー
+//カテゴリ
 
 // router.get('/category_form', async function (req, res, next) {
 //   const categories = await models.Category.findAll();
