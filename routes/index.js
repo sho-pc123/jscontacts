@@ -50,7 +50,6 @@ router.post('/contacts', async function (req, res, next) {
         contact['categoryId'] = null;
       }
       console.log(contact);
-      ///ここでエラー
       await contact.save({ fields });
       req.session.flashMessage = `新しい連絡先として「${contact.name}」さんを保存しました`; //--- [1]
     }
@@ -75,34 +74,48 @@ router.post('/contacts/:id/delete', async function (req, res, next) { //--- [1]
   res.redirect('/');
 });
 
-//カテゴリ
+///カテゴリ
 
-// router.get('/category_form', async function (req, res, next) {
-//   const categories = await models.Category.findAll();
-//   res.render('category_form', { title: 'カテゴリの作成', contact: {} });
-// });
+router.get('/category_form', async function (req, res, next) {
+  res.render('category_form', { title: 'カテゴリの作成', category: {} });
+});
 
 router.get('/categories/:id', async function (req, res, next) {
   const category = await models.Category.findByPk(req.params.id);
   const contacts = await category.getContacts({ include: 'category' });
+
   res.render('category', { title: `カテゴリ ${category.name}`, category, contacts });
 });
 
-// router.post('/categories', async function (req, res, next) {
-//   try{
-//   console.log('posted', req.body);
-//   const category = models.Category.build({ name: req.body.name });
-//   await category.save();
-//   res.redirect('/');
-//   } catch (err) {
-//     if (err instanceof ValidationError) {
-//       res.render(`category_form`, { title: 'カテゴリの作成', category: req.body, err: err });
-//     } else {
-//       throw err; // ここでの対応を諦めて処理系に任せる
-//     }
-//   }
-// });
+router.get('/categories/:id/edit', async function (req, res, next) {
+  const category = await models.Category.findByPk(req.params.id);
+  res.render('category_form', { title: 'カテゴリの更新', category: category });
+});
 
+router.post('/categories', async function (req, res, next) {
+  try {
+    console.log('posted', req.body);
+    if (req.body.id) {
+      const category = await models.Category.findByPk(req.body.id); //---[1]
+      category.name = req.body.name; //--- [2〜]
+      await category.save(); //--- [3]
+      req.session.flashMessage = ` カテゴリ「${category.name}」を更新しました`; //--- [4]
+    } else {
+      const category = models.Category.build({ name: req.body.name });
+      await category.save();
+      req.session.flashMessage = `新しいカテゴリとして「${category.name}」を保存しました`;
+    }
+    res.redirect('/');
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      const title = (req.body.id) ? 'カテゴリの更新' : 'カテゴリの作成'; //--- [5〜]
+      res.render(`category_form`, { title, category: req.body, err: err }); //--- [〜5]
+    } else {
+      console.log(err);
+      throw err;
+    }
+  }
+});
 
 router.post('/categories/:id/delete', async function (req, res, next) { //--- [1]
   console.log(req.params); //--- [2]
@@ -111,6 +124,5 @@ router.post('/categories/:id/delete', async function (req, res, next) { //--- [1
   req.session.flashMessage = `「${category.name}」を削除しました`;
   res.redirect('/');
 });
-
 
 module.exports = router;
