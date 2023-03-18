@@ -111,7 +111,6 @@ router.post('/categories', async function (req, res, next) {
       const title = (req.body.id) ? 'カテゴリの更新' : 'カテゴリの作成'; //--- [5〜]
       res.render(`category_form`, { title, category: req.body, err: err }); //--- [〜5]
     } else {
-      console.log(err);
       throw err;
     }
   }
@@ -120,9 +119,23 @@ router.post('/categories', async function (req, res, next) {
 router.post('/categories/:id/delete', async function (req, res, next) { //--- [1]
   console.log(req.params); //--- [2]
   const category = await models.Category.findByPk(req.params.id); //---[3]
-  await category.destroy(); //--- [4]
-  req.session.flashMessage = `「${category.name}」を削除しました`;
-  res.redirect('/');
+  try{
+    const contact = await models.Contact.findOne({
+      where: {
+        categoryId: category.id
+      }
+    })
+    if(!contact){
+      await category.destroy(); //--- [4]
+      req.session.flashMessage = `カテゴリ「${category.name}」を削除しました`;
+      res.redirect('/');
+    }else{
+      req.session.flashMessage = `連絡先が残っているため「${category.name}」さんを削除できませんでした`; //--- [1]
+      res.redirect('/');
+    }
+  } catch(err){
+    console.log(err);
+  }
 });
 
 module.exports = router;
